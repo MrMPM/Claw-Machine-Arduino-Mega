@@ -1,3 +1,6 @@
+// LEAVE THIS COPYRIGHT NOTICE INTACT. OTHER USE IS A BREACH OF THE LICENSE GNU GPLv3 AND IS PUNISHABLE BY LAW
+// Licensed under GNU GPLv3: https://choosealicense.com/licenses/gpl-3.0/
+
 //////////////////////////////////////////////////////
 //      Arcade Game Claw machine - by Marcin Em     //
 //**************************************************//
