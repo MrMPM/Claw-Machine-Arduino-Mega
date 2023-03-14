@@ -135,7 +135,7 @@ void setup() {
   // Print the initial message on the LCD
   lcd.clear();
   lcd.setCursor(5, 0);
-  lcd.print("Dominic's");
+  lcd.print("          ");
   lcd.setCursor(3, 1);
   lcd.print("CLAW  MACHINE!");
   lcd.setCursor(4, 2);
@@ -368,7 +368,7 @@ void loop() {
     bool waitingForInput = true; // add flag variable
     while (waitingForInput) { // loop until flag variable is false
       lcd.setCursor(5, 0);
-      lcd.print("Dominic's");
+      lcd.print("       ");
       lcd.setCursor(3, 1);
       lcd.print("CLAW  MACHINE!");
       lcd.setCursor(5, 2);
