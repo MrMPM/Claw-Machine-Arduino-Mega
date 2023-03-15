@@ -80,6 +80,9 @@ int zEndstopState = 0;
 // Declare variables for game state
 int creditCount = 0;
 bool gameStarted = false;
+
+// Declare an additional variable to track the previous time
+unsigned long previousMillis = 0;
 elapsedMillis gameTimer;
 
 void homeSteppers();
@@ -189,8 +192,8 @@ void homeSteppers() {
 void moveZAxisUp() {
 
   lcd.clear();
-  lcd.setCursor(3, 3);
-  lcd.print("CLAW moving UP");
+  lcd.setCursor(1, 1);
+  lcd.print("..CLAW GOING UP..");
 
   zStepper.setSpeed(-200);
   while (digitalRead(zEndstop) == HIGH) {
@@ -205,8 +208,8 @@ void moveZAxisUp() {
 void moveZAxisDown() {
 
   lcd.clear();
-  lcd.setCursor(2, 3);
-  lcd.print("CLAW moving DOWN");
+  lcd.setCursor(1, 1);
+  lcd.print("..CLAW GOING DOWN..");
 
   zStepper.setSpeed(200);
   unsigned long startTime = millis();
@@ -279,6 +282,8 @@ void closeClaw() {
 
 void endGame() {
 
+  lcd.clear();
+
   // Open the claw
   openClaw();
 
@@ -290,13 +295,16 @@ void endGame() {
   // Close the claw
   closeClaw();
 
+  // Raise the claw
+  moveZAxisUp();
+
   // Home the stepper motors
   homeSteppers();
 
   delay(1000);
 
-  lcd.setCursor(2, 0);
-  lcd.print("Releasing  Prize");
+  lcd.setCursor(1, 1);
+  lcd.print("Releasing prize...");
 
   // Open the claw to release the prize
   openClaw();
@@ -335,7 +343,9 @@ void loop() {
     lcd.clear();
     lcd.setCursor(2, 0);
     lcd.print("Game starting...");
-    delay(500);
+    lcd.setCursor(4, 2);
+    lcd.print("GET READY!");
+    delay(1000);
     lcd.clear();
 
     gameStarted = true;
@@ -344,28 +354,41 @@ void loop() {
   }
 
   // Control the stepper motor if the game is started
-  if (gameStarted) {
+if (gameStarted) {
 
-    moveXAxis();
-    moveYAxis();
+  moveXAxis();
+  moveYAxis();
 
-    // Display the remaining time on the LCD
-    if (gameTimer >= 1000) {
-      gameTimer = 0;
-      lcd.setCursor(0, 3);
-      int remainingTime = (30000 - gameTimer) / 1000;
-      lcd.print("Time: ");
-      lcd.print(remainingTime);
-      lcd.print("s ");
-    }
+    // Count down timer
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 1000) {
+    previousMillis = currentMillis;
+
+    // Calculate and display the remaining time on the LCD
+    int remainingTime = 30 - (gameTimer / 1000);
+    lcd.setCursor(0, 0);
+    lcd.print("Use JOYSTICK to MOVE");
+    lcd.setCursor(1, 1);
+    lcd.print("Press CLAW to GRAB");
+    lcd.setCursor(5, 2);
+    lcd.print("Good Luck!");
+    lcd.setCursor(3, 3);
+    lcd.print("Time left: ");
+    lcd.print(remainingTime);
+    lcd.print("s ");
   }
+}
 
-  // Check for game ending
-  if (gameStarted && (gameTimer >= 30000 || digitalRead(clawButton) == LOW)) {
-    gameStarted = false;
+// Check for game ending
+if (gameStarted && (gameTimer >= 30000 || digitalRead(clawButton) == LOW)) {
+  gameStarted = false;
 
-    // End the game
-    endGame();
+  // Reset the game timer and previousMillis
+  gameTimer = 0;
+  previousMillis = 0;
+
+  // End the game
+  endGame();
 
     // Wait for player to insert coin or press start button
     bool waitingForInput = true; // add flag variable
