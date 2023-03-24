@@ -111,7 +111,6 @@ void openClaw();
 void closeClaw();
 void endGame();
 void manualControls();
-void manualControls();
 void setTimeLimit();
 void updateLeds();
 
