@@ -8,4 +8,4 @@ Simulate this project on https://wokwi.com/projects/360071199419997185
 
 Added sketch with MANUAL MODE, which can be toggled while there's no credits available, instructions within sketch.
 
-Added rotary encoder for adjusting game time limit (stored in eeprom), updated messages displayed.
+Added rotary encoder for adjusting game time limit (stored in eeprom), updated messages displayed, added pushbuttons leds.
