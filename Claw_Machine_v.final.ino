@@ -36,12 +36,12 @@ const int zEndstop = 14;
 
 // Declare pins for servo and pushbuttons
 const int servoPin = 15;
-const int startButton = 16; // When no credits available, press and hold for 2 seconds to enter manual mode
-const int clawButton = 17; // When no credits available, press and hold for 2 seconds to change game time limit
+const int startButton = 16;
+const int clawButton = 17;
 const int leftButton = 18;
 const int rightButton = 19;
-const int forwardButton = 20;
-const int backwardButton = 21;
+const int forwardButton = 26;
+const int backwardButton = 28;
 const int creditButton = 22;
 
 // Declare pin for alphanumeric display
@@ -111,6 +111,7 @@ void openClaw();
 void closeClaw();
 void endGame();
 void manualControls();
+void writeTimeLimitToEEPROM();
 void setTimeLimit();
 void updateLeds();
 
@@ -185,14 +186,14 @@ void setup() {
 
   // Print the initial message on the LCD
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("CLAW");
-  lcd.setCursor(12, 1);
-  lcd.print("MACHINE!");
-  lcd.setCursor(0, 2);
-  lcd.print("        ");
-  lcd.setCursor(0, 3);
+  lcd.setCursor(5, 0);
+  lcd.print("       ");
+  lcd.setCursor(3, 1);
+  lcd.print("CLAW  MACHINE!");
+  lcd.setCursor(4, 2);
   lcd.print("Insert Coin");
+  lcd.setCursor(1, 3);
+  lcd.print("To START The GAME");
 
   RE_LastPosition = digitalRead(encoderPinA);
 
@@ -238,7 +239,7 @@ void setTimeLimit() {
       lcd.print(timeLimit);
       lcd.print(" seconds");
       lcd.setCursor(1, 3);
-      lcd.print("Hold CLAW to EXIT");
+      lcd.print("Hold claw to EXIT");
       delay(1000);
   }
 }
@@ -292,7 +293,7 @@ void moveZAxisUp() {
   while (digitalRead(zEndstop) == HIGH) {
     zStepper.runSpeed();
   }
-  zStepper.setSpeed(0);
+  zStepper.setCurrentPosition(0);
   lcd.clear();
 }
 
@@ -309,7 +310,7 @@ void moveZAxisDown() {
   while (millis() - startTime < 4000) {
     zStepper.runSpeed();
   }
-  zStepper.setSpeed(0);
+  zStepper.setCurrentPosition(0);
   lcd.clear();
 }
 
@@ -317,42 +318,34 @@ void moveZAxisDown() {
 
 void moveXAxis() {
 
-  while (digitalRead(leftButton) == LOW && digitalRead(xEndstop1) == HIGH) {
-    xStepper.setSpeed(400);
-    xStepper.runSpeed();
+   if (digitalRead(leftButton) == LOW && digitalRead(xEndstop1) == HIGH) {
+    xStepper.setSpeed(300);
+  } else if (digitalRead(rightButton) == LOW && digitalRead(xEndstop2) == HIGH) {
+    xStepper.setSpeed(-300);
+  } else {
+    xStepper.setSpeed(0);
   }
-  xStepper.setSpeed(0);
-
-  while (digitalRead(rightButton) == LOW && digitalRead(xEndstop2) == HIGH) {
-    xStepper.setSpeed(-400);
-    xStepper.runSpeed();
-  }
-  xStepper.setSpeed(0);
+  xStepper.runSpeed();
 }
 
 ///////////////////// MOVE Y AXIS ////////////////////
 
 void moveYAxis() {
 
-  while (digitalRead(forwardButton) == LOW && digitalRead(yEndstop1) == HIGH) {
-    yStepper1.setSpeed(-400);
-    yStepper2.setSpeed(400);
-    yStepper1.runSpeed();
-    yStepper2.runSpeed();
+  if (digitalRead(forwardButton) == LOW && digitalRead(yEndstop1) == HIGH) {
+    yStepper1.setSpeed(-300);
+    yStepper2.setSpeed(300);
+  } else if (digitalRead(backwardButton) == LOW && digitalRead(yEndstop2) == HIGH) {
+    yStepper1.setSpeed(300);
+    yStepper2.setSpeed(-300);
+  } else {
+    yStepper1.setSpeed(0);
+    yStepper2.setSpeed(0);
   }
-  yStepper1.setSpeed(0);
-  yStepper2.setSpeed(0);
-
-  while (digitalRead(backwardButton) == LOW && digitalRead(yEndstop2) == HIGH) {
-    yStepper1.setSpeed(400);
-    yStepper2.setSpeed(-400);
-    yStepper1.runSpeed();
-    yStepper2.runSpeed();
-  }
-  yStepper1.setSpeed(0);
-  yStepper2.setSpeed(0);
+  yStepper1.runSpeed();
+  yStepper2.runSpeed();
 }
-
+  
 ///////////////////// OPEN CLAW //////////////////////
 
 void openClaw() {
@@ -379,7 +372,7 @@ void updateLeds() {
   static bool cBLedState = HIGH;
 
   if (creditCount > 0 && !gameStarted) {
-    if (millis() - previousBlinkMillis >= 300) {
+    if (millis() - previousBlinkMillis >= 400) {
       sBLedState = !sBLedState;
       digitalWrite(sBLed, sBLedState);
       previousBlinkMillis = millis();
@@ -389,7 +382,7 @@ void updateLeds() {
   }
 
   if (gameStarted) {
-    if (millis() - previousBlinkMillis >= 300) {
+    if (millis() - previousBlinkMillis >= 400) {
       cBLedState = !cBLedState;
       digitalWrite(cBLed, cBLedState);
       previousBlinkMillis = millis();
@@ -401,9 +394,9 @@ void updateLeds() {
 
 //////////////////// MANUAL CONTROLS /////////////////////
 //                To enter MANUAL MODE                  //
-//      press and hold START button for 2 seconds.      //
+//      press and hold START button for 3 seconds.      //
 //                To exit MANUAL MODE                   //
-//      press and hold START button for 1 seconds.      //
+//      press and hold START button for 2 seconds.      //
 // No credits must be available to toggle between modes //
 //////////////////////////////////////////////////////////
 
@@ -438,6 +431,7 @@ void manualControls() {
         zStepper.runSpeed();
       }
       zStepper.setSpeed(0);
+    lcd.clear();
     }
 
     if (digitalRead(backwardButton) == LOW) {
@@ -452,6 +446,7 @@ void manualControls() {
         zStepper.runSpeed();
       }
       zStepper.setSpeed(0);
+    lcd.clear();
     }
 
   } else {
@@ -460,20 +455,20 @@ void manualControls() {
     // Joystick controls gantry movements on X and Y axes
 
     while (digitalRead(leftButton) == LOW && digitalRead(xEndstop1) == HIGH) {
-      xStepper.setSpeed(400);
+      xStepper.setSpeed(300);
       xStepper.runSpeed();
     }
     xStepper.setSpeed(0);
 
     while (digitalRead(rightButton) == LOW && digitalRead(xEndstop2) == HIGH) {
-      xStepper.setSpeed(-400);
+      xStepper.setSpeed(-300);
       xStepper.runSpeed();
     }
     xStepper.setSpeed(0);
 
     while (digitalRead(forwardButton) == LOW && digitalRead(yEndstop1) == HIGH) {
-      yStepper1.setSpeed(-400);
-      yStepper2.setSpeed(400);
+      yStepper1.setSpeed(-300);
+      yStepper2.setSpeed(300);
       yStepper1.runSpeed();
       yStepper2.runSpeed();
     }
@@ -481,8 +476,8 @@ void manualControls() {
     yStepper2.setSpeed(0);
 
     while (digitalRead(backwardButton) == LOW && digitalRead(yEndstop2) == HIGH) {
-      yStepper1.setSpeed(400);
-      yStepper2.setSpeed(-400);
+      yStepper1.setSpeed(300);
+      yStepper2.setSpeed(-300);
       yStepper1.runSpeed();
       yStepper2.runSpeed();
     }
@@ -496,6 +491,9 @@ void manualControls() {
 void endGame() {
 
   lcd.clear();
+
+  // Update leds
+  updateLeds();
 
   // Open the claw
   openClaw();
@@ -585,7 +583,7 @@ void loop() {
   }
 
   // Check if the claw button is held for 2 second to enter TIME LIMIT MODE
-  if (creditCount == 0 && digitalRead(clawButton) == LOW && !gameStarted) {
+  if (creditCount == 0 && digitalRead(clawButton) == LOW && !gameStarted && !manualMode) {
     if (clawButtonMillis == 0) {
       clawButtonMillis = millis();
     } else if (millis() - clawButtonMillis >= 2000) {
@@ -599,8 +597,8 @@ void loop() {
       lcd.print("Turn knob to CHANGE");
       lcd.setCursor(1, 2);
       lcd.print("Press knob to SAVE");
-      lcd.setCursor(2, 3);
-      lcd.print("Hold CLAW to EXIT");
+      lcd.setCursor(1, 3);
+      lcd.print("Hold claw to EXIT");
     }
   } else {
     clawButtonMillis = 0;
@@ -681,7 +679,7 @@ void loop() {
 
       // Calculate and display the remaining time on the LCD
       int remainingTime = timeLimit - (gameTimer / 1000);
-      lcd.clear();
+      //lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Use JOYSTICK to MOVE");
       lcd.setCursor(1, 1);
@@ -696,10 +694,8 @@ void loop() {
   }
 
   // Check for game ending
-if (gameStarted && (gameTimer >= timeLimit * 1000 || digitalRead(clawButton) == LOW)) {
+if (gameStarted && (gameTimer >= (timeLimit * 1000) || digitalRead(clawButton) == LOW)) {
     gameStarted = false;
-
-    updateLeds();
 
     // Reset the game timer and previousMillis
     gameTimer = 0;
@@ -712,9 +708,9 @@ if (gameStarted && (gameTimer >= timeLimit * 1000 || digitalRead(clawButton) == 
     bool waitingForInput = true; // add flag variable
     while (waitingForInput) { // loop until flag variable is false
       lcd.setCursor(5, 0);
-      lcd.print("       ");
-      lcd.setCursor(2, 1);
-      lcd.print("CLAW    MACHINE!");
+      lcd.print("      ");
+      lcd.setCursor(1, 1);
+      lcd.print("CLAW      MACHINE!");
       lcd.setCursor(3, 2);
       lcd.print("Add credits: ");
       lcd.print(creditCount);
