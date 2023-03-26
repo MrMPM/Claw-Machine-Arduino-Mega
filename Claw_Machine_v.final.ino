@@ -193,7 +193,7 @@ void setup() {
   lcd.setCursor(4, 2);
   lcd.print("Insert Coin");
   lcd.setCursor(1, 3);
-  lcd.print("To START The GAME");
+  lcd.print("To START the GAME");
 
   RE_LastPosition = digitalRead(encoderPinA);
 
