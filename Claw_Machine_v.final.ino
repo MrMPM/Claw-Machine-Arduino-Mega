@@ -394,9 +394,9 @@ void updateLeds() {
 
 //////////////////// MANUAL CONTROLS /////////////////////
 //                To enter MANUAL MODE                  //
-//      press and hold START button for 3 seconds.      //
-//                To exit MANUAL MODE                   //
 //      press and hold START button for 2 seconds.      //
+//                To exit MANUAL MODE                   //
+//      press and hold START button for 1 seconds.      //
 // No credits must be available to toggle between modes //
 //////////////////////////////////////////////////////////
 
